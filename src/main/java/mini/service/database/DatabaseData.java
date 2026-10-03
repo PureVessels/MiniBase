@@ -1,4 +1,19 @@
 package mini.service.database;
 
-public class DatabaseData {
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+public record DatabaseData(String ip, double port, String database, String username, String password, Map<String, String> properties) {
+
+    public DatabaseData{
+        Map<String, String> props = new HashMap<>(properties);
+
+        props.put("cachePrepStmts", "true");
+        props.put("prepStmtCacheSqlLimit", "2048");
+        props.put("prepStmtCacheSize", "250");
+        props.put("useServerPrepStmts", "true");
+
+        properties = Collections.unmodifiableMap(props);
+    }
 }
