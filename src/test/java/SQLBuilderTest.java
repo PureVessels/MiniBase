@@ -24,9 +24,9 @@ class SQLBuilderTest {
         String sql2 = builder.createFindSQL(List.of("column1"), 2);
         String sql3 = builder.createFindSQL(List.of("column1"), 0);
 
-        assertEquals("SELECT 1 FROM test WHERE column1 = ? LIMIT 1", sql);
-        assertEquals("SELECT 1 FROM test WHERE column1 = ? LIMIT 2", sql2);
-        assertEquals("SELECT 1 FROM test WHERE column1 = ?", sql3);
+        assertEquals("SELECT * FROM test WHERE column1 = ? LIMIT 1", sql);
+        assertEquals("SELECT * FROM test WHERE column1 = ? LIMIT 2", sql2);
+        assertEquals("SELECT * FROM test WHERE column1 = ?", sql3);
     }
 
     @Test

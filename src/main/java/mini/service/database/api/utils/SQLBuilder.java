@@ -30,12 +30,13 @@ public final class SQLBuilder {
     public int getTableColumnsSize(){ return columns.size(); }
 
 
-    public String createFindSQL(@NotNull List<String> columns){ return createFindSQL(columns, 1); }
-    public String createFindSQL(@NotNull List<String> whereColumns, int limit){
+    public String createFindSQL(@NotNull List<String> columns){ return createFindSQL(columns,1); }
+    public String createFindSQL(@NotNull List<String> columns, int limit){ return createFindSQL(columns, "*", limit); }
+    public String createFindSQL(@NotNull List<String> whereColumns, @NotNull String selectValue, int limit){
         for (String column : whereColumns){ allowedColumns(column); }
 
         StringBuilder sql = new StringBuilder();
-        sql.append("SELECT 1 FROM ").append(tableName);
+        sql.append("SELECT ").append(selectValue).append(" FROM ").append(tableName);
         buildWhereSQL(sql, whereColumns);
         if (limit > 0) sql.append(" LIMIT ").append(limit);
 
