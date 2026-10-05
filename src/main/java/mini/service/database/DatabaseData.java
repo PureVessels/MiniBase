@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public record DatabaseData(String ip, double port, String database, String username, String password, Map<String, String> properties) {
+public record DatabaseData(String ip, int port, String database, String username, String password, Map<String, String> properties) {
 
     public DatabaseData{
         Map<String, String> props = new HashMap<>(properties);

@@ -16,22 +16,22 @@ public final class DatabaseThread implements DatabaseExecutor {
     private final ThreadPoolExecutor executor;
     private final DataBase dataBase;
 
-    public DatabaseThread(int corePoolSize, int maximumPoolSize, long keepAliveTime, String threadName, DataBase dataBase) {
+    public DatabaseThread(int maximumPoolSize, long keepAliveTime, String threadName, DataBase dataBase) {
         this.dataBase = dataBase;
 
         this.executor = new ThreadPoolExecutor(
-                corePoolSize,
+                maximumPoolSize,
                 maximumPoolSize,
                 keepAliveTime,
                 TimeUnit.SECONDS,
-                new SynchronousQueue<>(),
+                new LinkedBlockingQueue<>(),
                 runnable -> {
                     Thread thread = new Thread(runnable, threadName);
-
                     thread.setDaemon(true);
                     return thread;
                 }
         );
+        executor.allowCoreThreadTimeOut(true);
     }
 
     @Override
