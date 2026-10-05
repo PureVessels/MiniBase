@@ -33,7 +33,7 @@ public final class DataBase implements DatabaseService {
         this.dataSource = new HikariDataSource(config);
         this.pool = dataSource.getHikariPoolMXBean();
 
-        this.databaseThread = new DatabaseThread(0, 4, 30L, "Database-Service", this);
+        this.databaseThread = new DatabaseThread(0, 10, 30L, "Database-Service", this);
 
         logger.info("Connected to database: " + data.ip() + ":" + data.port() + "/" + data.database());
     }
