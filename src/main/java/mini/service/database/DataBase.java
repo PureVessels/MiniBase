@@ -41,6 +41,8 @@ public final class DataBase implements DatabaseService {
         try {
             HikariConfig config = new HikariConfig();
 
+            config.setDriverClassName("com.mysql.cj.jdbc.Driver");
+
             config.setJdbcUrl(
                     "jdbc:mysql://" +
                             data.ip() + ":" +

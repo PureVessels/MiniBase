@@ -6,6 +6,10 @@ import java.util.Map;
 
 public record DatabaseData(String ip, int port, String database, String username, String password, Map<String, String> properties) {
 
+    public DatabaseData(String ip, int port, String database, String username, String password){
+        this(ip, port, database, username, password, Collections.emptyMap());
+    }
+
     public DatabaseData{
         Map<String, String> props = new HashMap<>(properties);
 
