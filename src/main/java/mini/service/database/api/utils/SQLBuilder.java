@@ -3,10 +3,7 @@ package mini.service.database.api.utils;
 import mini.service.database.api.thrown.DatabaseException;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public final class SQLBuilder {
 
@@ -33,7 +30,7 @@ public final class SQLBuilder {
     public String createFindSQL(@NotNull List<String> columns){ return createFindSQL(columns,1); }
     public String createFindSQL(@NotNull List<String> columns, int limit){ return createFindSQL(columns, "*", limit); }
     public String createFindSQL(@NotNull List<String> whereColumns, @NotNull String selectValue, int limit){
-        for (String column : whereColumns){ allowedColumns(column); }
+        checkColumns(whereColumns);
 
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT ").append(selectValue).append(" FROM ").append(tableName);
@@ -45,8 +42,8 @@ public final class SQLBuilder {
 
     public String createSelectSQL(@NotNull List<String> keys, @NotNull List<String> whereColumns){ return createSelectSQL(keys, whereColumns, 1); }
     public String createSelectSQL(@NotNull List<String> keys, @NotNull List<String> whereColumns, int limit){
-        for (String column : keys){  allowedColumns(column); }
-        for (String column : whereColumns){ allowedColumns(column); }
+        checkColumns(keys);
+        checkColumns(whereColumns);
 
         StringBuilder sql = new StringBuilder();
         if (keys.isEmpty()) {
@@ -72,8 +69,8 @@ public final class SQLBuilder {
     public String createUpdateSQL(@NotNull List<String> updates, @NotNull List<String> whereColumns, int limit){
         if (updates.isEmpty()) throw new IllegalArgumentException("UPDATE condition required");
 
-        for (String column : updates){ allowedColumns(column); }
-        for (String column : whereColumns){ allowedColumns(column); }
+        checkColumns(updates);
+        checkColumns(whereColumns);
 
         StringBuilder sql = new StringBuilder();
         sql.append("UPDATE ");
@@ -100,8 +97,8 @@ public final class SQLBuilder {
     public String createUpdateAtomicSQL(@NotNull List<String> updates, @NotNull List<String> whereColumns, @NotNull AtomicType type, int limit){
         if (updates.isEmpty()) throw new IllegalArgumentException("UPDATE condition required");
 
-        for (String column : updates){ allowedColumns(column); }
-        for (String column : whereColumns){ allowedColumns(column); }
+        checkColumns(updates);
+        checkColumns(whereColumns);
 
         StringBuilder sql = new StringBuilder();
         sql.append("UPDATE ");
@@ -142,44 +139,67 @@ public final class SQLBuilder {
         sql.append(" INTO ").append(getTableName());
         sql.append(" (");
 
-        int i = 0;
-        for (String column : getTableColumns()) {
-            sql.append(column);
-            if (i < getTableColumnsSize() - 1) sql.append(", ");
-            i++;
-        }
+        builderColumns(sql, new ArrayList<>(getTableColumns()), ", ", null);
 
         sql.append(") VALUES (");
-        for (i = 0; i < getTableColumnsSize(); i++) {
-            sql.append("?");
-            if (i < getTableColumnsSize() - 1) sql.append(", ");
-        }
+        builderSQL(sql, null, false, ", ", "?");
+
         sql.append(")");
         return sql.toString();
     }
 
-    private void buildWhereSQL(StringBuilder sql, List<String> whereColumns){
-        if (whereColumns.isEmpty()) throw new IllegalArgumentException("WHERE condition required");
-        sql.append(" WHERE ");
-        builderColumns(sql, whereColumns, " AND ", " = ?");
+    public String createDeleteSQL(@NotNull List<String> whereColumns) {
+        checkColumns(whereColumns);
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("DELETE FROM ");
+        sql.append(getTableName());
+
+        buildWhereSQL(sql, whereColumns, ", ", " = ?");
+
+        return sql.toString();
     }
 
-    private void builderColumns(StringBuilder sql, List<String> columns, String separator, String suffix) {
+    private void buildWhereSQL(StringBuilder sql, List<String> whereColumns){
+        buildWhereSQL(sql, whereColumns, " AND ", " = ?");
+    }
+
+    private void buildWhereSQL(StringBuilder sql, List<String> whereColumns, String suffix, String prefix){
+        if (whereColumns.isEmpty()) throw new IllegalArgumentException("WHERE condition required");
+        sql.append(" WHERE ");
+        builderColumns(sql, whereColumns, suffix, prefix);
+    }
+
+    private void builderColumns(StringBuilder sql, List<String> columns, String suffix, String prefix) {
         if (columns.isEmpty()) { throw new IllegalArgumentException("Columns required"); }
+        builderSQL(sql, columns, true, suffix, prefix);
+    }
+
+    private void builderSQL(StringBuilder sql, List<String> columnsList, boolean useColumn, String suffix, String prefix){
+        List<String> columns = (useColumn ? columnsList : new ArrayList<>(getTableColumns()));
+        if (columns.isEmpty()) { throw new IllegalArgumentException("Columns required"); }
+
+        int columnSize = columns.size() - 1;
 
         for (int i = 0; i < columns.size(); i++) {
             String column = columns.get(i);
-            allowedColumns(column);
 
-            if (i > 0) { sql.append(key(separator, column)); }
-            sql.append(column);
-            if (suffix != null) { sql.append(key(suffix, column)); }
+            if (useColumn){
+                allowedColumns(column);
+                sql.append(column);
+            }
+
+            if (prefix != null) { sql.append((useColumn ? key(prefix, column) : prefix)); }
+            if (i < columnSize) { sql.append((useColumn ? key(suffix, column) : suffix)); }
         }
     }
 
     private String key(String key, String column){ return key.replace("${key}", column); }
     private void allowedColumns(String column){ if(!getTableColumns().contains(column)) throw new DatabaseException("SQl create failed because " + column + " not column", DatabaseException.Function.BUILDER); }
-
+    private void checkColumns(List<String> columns){
+        if (columns.isEmpty()) throw new IllegalArgumentException("Columns required");
+        for (String column : columns){ allowedColumns(column); }
+    }
 
     public enum AtomicType {
         NUMBER,

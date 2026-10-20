@@ -96,4 +96,11 @@ class SQLBuilderTest {
 
         assertEquals("UPDATE test SET column2 = CONCAT(COALESCE(column2, ''), ?) " + "WHERE column1 = ? LIMIT 1", sql);
     }
+
+    @Test
+    void shouldCreateDeleteSQL() {
+        String sql = builder.createDeleteSQL(List.of("column1", "column2"));
+
+        assertEquals("DELETE FROM test WHERE column1 = ?, column2 = ?", sql);
+    }
 }
